@@ -13,4 +13,17 @@ function M.working_dir_has_bundle()
 	return bundle_exists
 end
 
+function M.scope_command(command)
+	if not type(command) == "table" then
+		error("command must be table")
+	end
+
+	if M.working_dir_has_bundle() then
+		local bundle_prefix = { "bundle", "exec" }
+		return vim.list_extend(bundle_prefix, command)
+	else
+		return command
+	end
+end
+
 return M

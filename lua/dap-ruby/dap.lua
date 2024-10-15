@@ -5,44 +5,31 @@ local M = {}
 local dap = utils.load_module("dap")
 dap.set_log_level("TRACE")
 
-local configuration_command = utils.working_dir_has_bundle() and "bundle" or "ruby"
-
 local default_configurations = {
 	{
 		type = "ruby",
 		name = "*Debug script",
 		request = "launch",
 		localfs = true,
-		command = configuration_command,
-		args = {
-			"ruby",
-		},
+		command = utils.scope_command({ "ruby" }),
 		script = "${file}",
 	},
 }
 
 local default_adapter = function(configuration)
-	local executable_command = "rdbg"
-	local executable_arguments = {}
-	local invoked_command = { configuration_command }
+	local args = {}
+	local invoking_command = configuration.command
+	local invoking_script = configuration.script
+	local adapter_command = utils.scope_command({ "rdbg" })
+	local executable_command = adapter_command[1]
 
-	if utils.working_dir_has_bundle() then
-		executable_command = "bundle"
-		executable_arguments = { "exec", "rdbg" }
-		invoked_command = { "bundle", "exec" }
-		invoked_command = vim.list_extend(invoked_command, configuration.args)
+	if #adapter_command > 1 then
+		vim.list_extend(args, { unpack(adapter_command, 2) })
 	end
 
-	local args = vim.list_extend(executable_arguments, {
-		"--open",
-		"--port",
-		"${port}",
-		"-c",
-		"--",
-	})
-
-	args = vim.list_extend(args, invoked_command)
-	args = vim.list_extend(args, { configuration.script })
+	vim.list_extend(args, { "--open", "--port", "${port}", "-c", "--" })
+	vim.list_extend(args, invoking_command)
+	vim.list_extend(args, { invoking_script })
 
 	return {
 		type = "server",
@@ -55,14 +42,14 @@ local default_adapter = function(configuration)
 	}
 end
 
-M.build_ruby_configurations = function(custom_configurations)
+M.build_ruby_configurations = function()
 	dap.configurations.ruby = default_configurations
 end
 
-M.build_ruby_adapter = function(custom_adapter)
+M.build_ruby_adapter = function()
 	dap.adapters.ruby = function(callback, configuration)
 		local adapter = default_adapter(configuration)
-		vim.notify(vim.inspect(adapter))
+		-- vim.notify(vim.inspect(adapter))
 		-- callback(adapter)
 
 		vim.defer_fn(function()
