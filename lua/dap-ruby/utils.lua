@@ -13,6 +13,7 @@ function M.working_dir_has_bundle()
 	return bundle_exists
 end
 
+-- prefixes commands with "bundle exec" if a Gemfile is present
 function M.scope_command(command)
 	if not type(command) == "table" then
 		error("command must be table")
@@ -24,6 +25,11 @@ function M.scope_command(command)
 	else
 		return command
 	end
+end
+
+-- checks if a table is empty, considering { "" } also as empty
+function M.is_table_empty(table)
+	return not (table and #table > 0 and vim.fn.index(table, "") == -1)
 end
 
 return M
