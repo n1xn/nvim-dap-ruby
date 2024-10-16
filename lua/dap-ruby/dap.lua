@@ -10,27 +10,17 @@ dap.set_log_level("DEBUG")
 local default_configurations = {
 	{
 		type = "ruby",
+		name = "Attach & Debug    |   Rails",
+		request = "attach",
+		localfs = true,
+	},
+	{
+		type = "ruby",
 		name = "Launch & Debug    |   Script",
 		request = "launch",
 		localfs = true,
 		command = utils.scope_command({ "ruby" }),
 		script = "${file}",
-	},
-	{
-		type = "ruby",
-		name = "Launch & Debug    |   Rails",
-		request = "launch",
-		localfs = true,
-		command = utils.scope_command({ "rails", "server" }),
-		rdbg_args = {
-			"-n",
-		},
-	},
-	{
-		type = "ruby",
-		name = "Attach & Debug    |   Rails",
-		request = "attach",
-		localfs = true,
 	},
 }
 
@@ -82,12 +72,14 @@ local default_adapter = function(configuration)
 end
 
 M.build_ruby_configurations = function()
+	vim.notify("config run")
 	dap.configurations.ruby = default_configurations
 end
 
 M.build_ruby_adapter = function()
 	dap.adapters.ruby = function(callback, configuration)
 		local adapter = default_adapter(configuration)
+		vim.notify(vim.inspect(adapter))
 		callback(adapter)
 
 		-- vim.defer_fn(function()
