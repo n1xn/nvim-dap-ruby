@@ -10,7 +10,7 @@ dap.set_log_level("DEBUG")
 local default_configurations = {
 	{
 		type = "ruby",
-		name = "Launch & Debug   |   Script",
+		name = "Launch & Debug    |   Script",
 		request = "launch",
 		localfs = true,
 		command = utils.scope_command({ "ruby" }),
@@ -18,7 +18,7 @@ local default_configurations = {
 	},
 	{
 		type = "ruby",
-		name = "Launch & Debug   |   Rails",
+		name = "Launch & Debug    |   Rails",
 		request = "launch",
 		localfs = true,
 		command = utils.scope_command({ "rails", "server" }),
@@ -26,9 +26,27 @@ local default_configurations = {
 			"-n",
 		},
 	},
+	{
+		type = "ruby",
+		name = "Attach & Debug    |   Rails",
+		request = "attach",
+		localfs = true,
+	},
 }
 
 local default_adapter = function(configuration)
+	local adapter = {
+		type = "server",
+		host = "127.0.0.1",
+		port = "${port}",
+	}
+
+	if utils.is_table_empty(configuration.command) and configuration.request == "attach" then
+		local port = utils.prompt_for_port()
+		adapter.port = port
+		return adapter
+	end
+
 	local args = {}
 	local adapter_command = utils.scope_command({ "rdbg" })
 	local invoking_command = configuration.command
@@ -58,15 +76,9 @@ local default_adapter = function(configuration)
 
 	vim.list_extend(args, { invoking_script })
 
-	return {
-		type = "server",
-		host = "127.0.0.1",
-		port = "${port}",
-		executable = {
-			command = executable_command,
-			args = args,
-		},
-	}
+	adapter.executable = { command = executable_command, args = args }
+
+	return adapter
 end
 
 M.build_ruby_configurations = function()
